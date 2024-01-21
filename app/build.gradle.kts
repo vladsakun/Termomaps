@@ -2,6 +2,9 @@ plugins {
   alias(libs.plugins.androidApplication)
   alias(libs.plugins.jetbrainsKotlinAndroid)
   id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+  kotlin("kapt")
+  kotlin("plugin.serialization") version libs.versions.kotlin
+  id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -31,6 +34,9 @@ android {
   kotlinOptions {
     jvmTarget = "1.8"
   }
+  buildFeatures {
+    viewBinding = true
+  }
 
   secrets {
     // Optionally specify a different file name containing your secrets.
@@ -47,7 +53,19 @@ dependencies {
   implementation(libs.material)
   implementation(libs.androidx.activity)
   implementation(libs.androidx.constraintlayout)
-  implementation("com.google.android.gms:play-services-maps:17.0.1")
+  implementation(libs.play.services.maps)
+  implementation(libs.room.runtime)
+  kapt(libs.room.compiler)
+  implementation(libs.room.ktx)
+  implementation(libs.hilt.android)
+  kapt(libs.hilt.android.compiler)
+  kapt(libs.hilt.compiler)
+
+  implementation(libs.kotlinx.serialization.json)
+  implementation(libs.lifecycle.viewmodel.ktx)
+  implementation(libs.activity.ktx)
+  implementation(libs.fragment.ktx)
+  implementation(libs.navigatio.ui.ktx)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

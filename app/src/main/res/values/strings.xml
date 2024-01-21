@@ -1,3 +1,7 @@
 <resources>
   <string name="app_name">Termomaps</string>
+  <string name="name">Name</string>
+  <string name="temperature_lose">Temperature lose</string>
+  <string name="navigation_drawer_open">open\n</string>
+  <string name="navigation_drawer_close">close</string>
 </resources>
