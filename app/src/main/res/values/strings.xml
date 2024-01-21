@@ -4,4 +4,7 @@
   <string name="temperature_lose">Temperature lose</string>
   <string name="navigation_drawer_open">open\n</string>
   <string name="navigation_drawer_close">close</string>
+  <string name="cancel">Cancel</string>
+  <string name="confirm">Confirm</string>
+  <string name="menu">Menu</string>
 </resources>

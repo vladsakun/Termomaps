@@ -5,8 +5,12 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import java.io.File
 
-fun Context.shareJsonFile(json: String) {
-  val file = File(cacheDir, "termo_markers.json")
+fun Context.shareMap(json: String, mapName: String = "termo_markers") {
+  shareJsonFile(json, "$mapName.json")
+}
+
+fun Context.shareJsonFile(json: String, fileName: String) {
+  val file = File(cacheDir, fileName)
   file.writeText(json)
 
   val contentUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)

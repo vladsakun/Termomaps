@@ -1,10 +1,19 @@
 package com.university.termomaps.map
 
+import android.content.Context
+import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.VectorDrawable
+import android.os.Build
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.university.termomaps.R
 import com.university.termomaps.database.TermoMarker
-import kotlinx.serialization.Serializable
 
 data class TermoMarkerUiModel(
   val id: Long,
@@ -12,14 +21,13 @@ data class TermoMarkerUiModel(
   val latitude: Double,
   val longitude: Double,
   val temperatureLoss: Int,
-  val hue: Float,
+  @DrawableRes val iconResId: Int,
 ) {
   companion object {
     fun from(termoMarker: TermoMarker): TermoMarkerUiModel {
-      val hue: Float = when {
-        termoMarker.temperatureLoss <= 20 -> BitmapDescriptorFactory.HUE_GREEN
-        termoMarker.temperatureLoss <= 60 -> BitmapDescriptorFactory.HUE_YELLOW
-        else -> BitmapDescriptorFactory.HUE_RED
+      val iconResId: Int = when {
+        termoMarker.temperatureLoss <= 20 -> R.drawable.ic_cold_winter_thermometer
+        else -> R.drawable.ic_hot_summer_thermometer
       }
       return TermoMarkerUiModel(
         id = termoMarker.id,
@@ -27,7 +35,7 @@ data class TermoMarkerUiModel(
         latitude = termoMarker.latitude,
         longitude = termoMarker.longitude,
         temperatureLoss = termoMarker.temperatureLoss,
-        hue = hue,
+        iconResId = iconResId,
       )
     }
 
@@ -44,14 +52,27 @@ data class TermoMarkerUiModel(
   }
 }
 
-fun TermoMarkerUiModel.toMarkerOptions(): MarkerOptions {
-  // Change the color of MarkerOptions depending on the temperature loss
+fun TermoMarkerUiModel.toMarkerOptions(context: Context): MarkerOptions {
   return MarkerOptions()
     .position(LatLng(latitude, longitude))
     .title(name)
     .snippet("Temperature loss: $temperatureLoss")
-    .icon(BitmapDescriptorFactory.defaultMarker(hue))
+    .icon(getMarkerBitmapFromDrawable(ContextCompat.getDrawable(context, iconResId)))
     .alpha(0.7f)
     .draggable(false)
     .visible(true)
+}
+
+fun getMarkerBitmapFromDrawable(drawable: Drawable?): BitmapDescriptor {
+  requireNotNull(drawable)
+  val bitmap = when (drawable) {
+    is BitmapDrawable -> Bitmap.createBitmap(drawable.bitmap)
+    is VectorDrawable -> Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+    else -> throw IllegalArgumentException("unsupported drawable type")
+  }
+
+  val canvas = Canvas(bitmap)
+  drawable.setBounds(0, 0, canvas.width, canvas.height)
+  drawable.draw(canvas)
+  return BitmapDescriptorFactory.fromBitmap(bitmap)
 }

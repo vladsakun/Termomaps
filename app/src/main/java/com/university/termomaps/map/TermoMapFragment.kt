@@ -1,6 +1,7 @@
 package com.university.termomaps.map
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -10,18 +11,19 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.university.termomaps.R
-import com.university.termomaps.database.TermoMarker
 import com.university.termomaps.databinding.DialogAddMarkerBinding
 import com.university.termomaps.databinding.FragmentTermoMapBinding
 import com.university.termomaps.ext.collectWhenStarted
-import com.university.termomaps.ext.shareJsonFile
+import com.university.termomaps.ext.shareMap
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,6 +34,9 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 class TermoMapFragment : Fragment(), OnMapReadyCallback {
 
   private lateinit var mMap: GoogleMap
+  private val fusedLocationClient by lazy {
+    LocationServices.getFusedLocationProviderClient(requireActivity())
+  }
   private val viewModel: TermoMapViewModel by viewModels()
 
   private var _binding: FragmentTermoMapBinding? = null
@@ -53,28 +58,44 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
     binding.btnShare.setOnClickListener {
       shareMarkers()
     }
+
+    binding.btnMyLocation.setOnClickListener {
+      if (ContextCompat.checkSelfPermission(
+          requireContext(),
+          Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+      ) {
+        onSuccessLocationPermissionGranted()
+      } else {
+        requestLocationPermission()
+      }
+    }
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun onSuccessLocationPermissionGranted() {
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+      if (location != null) {
+        val currentLatLng = LatLng(location.latitude, location.longitude)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+        mMap.isMyLocationEnabled = true
+      }
+    }
   }
 
   override fun onMapReady(googleMap: GoogleMap) {
     mMap = googleMap
+    mMap.uiSettings.isMyLocationButtonEnabled = false
+    val mapStyleOptions = MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style)
+    mMap.setMapStyle(mapStyleOptions)
 
     viewModel.markers.collectWhenStarted(this) { markers ->
       mMap.clear()
       markers.forEach { marker ->
         mMap.addMarker(
-          marker.toMarkerOptions()
+          marker.toMarkerOptions(requireContext())
         )
       }
-    }
-
-    if (ContextCompat.checkSelfPermission(
-        requireContext(),
-        Manifest.permission.ACCESS_FINE_LOCATION
-      ) == PackageManager.PERMISSION_GRANTED
-    ) {
-      mMap.isMyLocationEnabled = true
-    } else {
-      requestLocationPermission()
     }
 
     mMap.setOnMapLongClickListener { latLng ->
@@ -102,7 +123,7 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
             Manifest.permission.ACCESS_FINE_LOCATION
           ) == PackageManager.PERMISSION_GRANTED
         ) {
-          mMap.isMyLocationEnabled = true
+          onSuccessLocationPermissionGranted()
         }
       } else {
         // Permission denied. Disable the functionality that depends on this permission.
@@ -123,10 +144,10 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
     }
     MaterialAlertDialogBuilder(requireContext())
       .setView(dialogView.root)
-      .setNegativeButton("Cancel") { dialog, _ ->
+      .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
         dialog.dismiss()
       }
-      .setPositiveButton("Confirm") { dialog, _ ->
+      .setPositiveButton(getString(R.string.confirm)) { dialog, _ ->
         val name = dialogView.etName.text.toString()
         val temperature = dialogView.numberPicker.value
         viewModel.addMarker(name, latLng, temperature)
@@ -139,7 +160,7 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
   private fun shareMarkers() {
     val markers = viewModel.markers.value.map { TermoMarkerUiModel.to(it) }
     val json = Json.encodeToString(markers)
-    requireContext().shareJsonFile(json)
+    requireContext().shareMap(json)
   }
 }
 

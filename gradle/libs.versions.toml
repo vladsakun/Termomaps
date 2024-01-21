@@ -18,6 +18,7 @@ kotlinSerialization = "1.6.2"
 lifecycle = "2.7.0"
 activityKtx = "1.8.2"
 fragmentKtx = "1.6.2"
+playServicesLocation = "18.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
 navigatio-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version = "2.7.6" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

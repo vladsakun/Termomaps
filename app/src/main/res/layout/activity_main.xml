@@ -27,9 +27,11 @@
 
     <ImageButton
       android:id="@+id/btn_menu"
+      style="@style/CircleButtonStyle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_margin="24dp"
+      android:contentDescription="@string/menu"
       android:src="@drawable/ic_menu_24"
       app:layout_constraintStart_toStartOf="parent"
       app:layout_constraintTop_toTopOf="parent"
