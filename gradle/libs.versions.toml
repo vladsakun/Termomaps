@@ -10,6 +10,7 @@ material = "1.11.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
 googleMaps = "18.2.0"
+secretsGradlePlugin = "2.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -21,6 +22,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 google-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "googleMaps" }
+secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
