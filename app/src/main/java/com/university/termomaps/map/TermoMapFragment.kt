@@ -19,6 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.university.termomaps.R
 import com.university.termomaps.database.TermoMarker
 import com.university.termomaps.databinding.DialogAddMarkerBinding
+import com.university.termomaps.databinding.FragmentTermoMapBinding
 import com.university.termomaps.ext.collectWhenStarted
 import com.university.termomaps.ext.shareJsonFile
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,17 +34,25 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
   private lateinit var mMap: GoogleMap
   private val viewModel: TermoMapViewModel by viewModels()
 
+  private var _binding: FragmentTermoMapBinding? = null
+  private val binding get() = _binding!!
+
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?,
     savedInstanceState: Bundle?,
-  ): View? {
-    return inflater.inflate(R.layout.fragment_termo_map, container, false)
+  ): View {
+    _binding = FragmentTermoMapBinding.inflate(inflater, container, false)
+    return binding.root
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
     mapFragment.getMapAsync(this)
+
+    binding.btnShare.setOnClickListener {
+      shareMarkers()
+    }
   }
 
   override fun onMapReady(googleMap: GoogleMap) {
@@ -102,6 +111,11 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
     }
   }
 
+  override fun onDestroyView() {
+    super.onDestroyView()
+    _binding = null
+  }
+
   private fun showAddMarkerDialog(latLng: LatLng) {
     val dialogView = DialogAddMarkerBinding.inflate(LayoutInflater.from(context)).apply {
       numberPicker.minValue = 0
@@ -123,7 +137,7 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
   }
 
   private fun shareMarkers() {
-    val markers = viewModel.markers.value
+    val markers = viewModel.markers.value.map { TermoMarkerUiModel.to(it) }
     val json = Json.encodeToString(markers)
     requireContext().shareJsonFile(json)
   }

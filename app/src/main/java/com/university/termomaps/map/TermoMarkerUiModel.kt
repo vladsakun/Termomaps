@@ -1,12 +1,13 @@
 package com.university.termomaps.map
 
-import android.graphics.Color
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.university.termomaps.database.TermoMarker
+import kotlinx.serialization.Serializable
 
 data class TermoMarkerUiModel(
+  val id: Long,
   val name: String,
   val latitude: Double,
   val longitude: Double,
@@ -21,13 +22,25 @@ data class TermoMarkerUiModel(
         else -> BitmapDescriptorFactory.HUE_RED
       }
       return TermoMarkerUiModel(
-        termoMarker.name,
-        termoMarker.latitude,
-        termoMarker.longitude,
-        termoMarker.temperatureLoss,
-        hue,
+        id = termoMarker.id,
+        name = termoMarker.name,
+        latitude = termoMarker.latitude,
+        longitude = termoMarker.longitude,
+        temperatureLoss = termoMarker.temperatureLoss,
+        hue = hue,
       )
     }
+
+    fun to(termoMarkerUiModel: TermoMarkerUiModel): TermoMarker =
+      with(termoMarkerUiModel) {
+        TermoMarker(
+          id = id,
+          name = name,
+          latitude = latitude,
+          longitude = longitude,
+          temperatureLoss = temperatureLoss,
+        )
+      }
   }
 }
 
