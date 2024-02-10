@@ -7,4 +7,8 @@
   <string name="cancel">Cancel</string>
   <string name="confirm">Confirm</string>
   <string name="menu">Menu</string>
+  <string name="create_map">Create map</string>
+  <string name="map_name">Name</string>
+  <string name="map_description">Description</string>
+  <string name="create">Create</string>
 </resources>

@@ -8,11 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.university.termomaps.database.TermoMarker
 import com.university.termomaps.databinding.ActivityMainBinding
-import com.university.termomaps.map.TermoMapFragment
+import com.university.termomaps.features.list.MapListFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.serialization.json.Json
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -51,12 +49,14 @@ class MainActivity : AppCompatActivity() {
     toggle.syncState()
 
     if (savedInstanceState == null) {
-      supportFragmentManager.beginTransaction()
-        .replace(R.id.fragment_container, TermoMapFragment())
+      supportFragmentManager
+        .beginTransaction()
+        .replace(R.id.fragment_container, MapListFragment.newInstance())
         .commit()
     }
 
     val uri = intent.data
+
     if (uri != null) {
       val inputStream = contentResolver.openInputStream(uri) ?: return
       val json = inputStream.bufferedReader().use { it.readText() }

@@ -1,11 +1,11 @@
-package com.university.termomaps.map
+package com.university.termomaps.features.map.model
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
-import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -13,7 +13,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.university.termomaps.R
-import com.university.termomaps.database.TermoMarker
+import com.university.termomaps.database.entity.TermoMarker
 
 data class TermoMarkerUiModel(
   val id: Long,
@@ -22,45 +22,49 @@ data class TermoMarkerUiModel(
   val longitude: Double,
   val temperatureLoss: Int,
   @DrawableRes val iconResId: Int,
-) {
-  companion object {
-    fun from(termoMarker: TermoMarker): TermoMarkerUiModel {
-      val iconResId: Int = when {
-        termoMarker.temperatureLoss <= 20 -> R.drawable.ic_cold_winter_thermometer
-        else -> R.drawable.ic_hot_summer_thermometer
-      }
-      return TermoMarkerUiModel(
-        id = termoMarker.id,
-        name = termoMarker.name,
-        latitude = termoMarker.latitude,
-        longitude = termoMarker.longitude,
-        temperatureLoss = termoMarker.temperatureLoss,
-        iconResId = iconResId,
-      )
-    }
+  val termoMapId: Int,
+)
 
-    fun to(termoMarkerUiModel: TermoMarkerUiModel): TermoMarker =
-      with(termoMarkerUiModel) {
-        TermoMarker(
-          id = id,
-          name = name,
-          latitude = latitude,
-          longitude = longitude,
-          temperatureLoss = temperatureLoss,
-        )
-      }
+fun TermoMarker.asUiModel(): TermoMarkerUiModel {
+  val iconResId: Int = when {
+    temperatureLoss <= 20 -> R.drawable.ic_cold_marker
+    else -> R.drawable.ic_warm_marker
   }
+  return TermoMarkerUiModel(
+    id = id,
+    name = name,
+    latitude = latitude,
+    longitude = longitude,
+    temperatureLoss = temperatureLoss,
+    iconResId = iconResId,
+    termoMapId = termoMapId,
+  )
 }
+
+fun TermoMarkerUiModel.asModel(): TermoMarker =
+  TermoMarker(
+    id = id,
+    name = name,
+    latitude = latitude,
+    longitude = longitude,
+    temperatureLoss = temperatureLoss,
+    termoMapId = termoMapId,
+  )
 
 fun TermoMarkerUiModel.toMarkerOptions(context: Context): MarkerOptions {
   return MarkerOptions()
     .position(LatLng(latitude, longitude))
     .title(name)
     .snippet("Temperature loss: $temperatureLoss")
-    .icon(getMarkerBitmapFromDrawable(ContextCompat.getDrawable(context, iconResId)))
-    .alpha(0.7f)
+    .icon(getMarkerBitmapFromDrawableRes(context, iconResId))
+    .alpha(0.9f)
     .draggable(false)
     .visible(true)
+}
+
+fun getMarkerBitmapFromDrawableRes(context: Context, @DrawableRes drawableRes: Int): BitmapDescriptor {
+  val drawable = ContextCompat.getDrawable(context, drawableRes)
+  return getMarkerBitmapFromDrawable(drawable)
 }
 
 fun getMarkerBitmapFromDrawable(drawable: Drawable?): BitmapDescriptor {

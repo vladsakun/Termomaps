@@ -67,6 +67,7 @@ dependencies {
   implementation(libs.fragment.ktx)
   implementation(libs.navigatio.ui.ktx)
   implementation(libs.play.services.location)
+  implementation(libs.android.maps.utils)
 
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

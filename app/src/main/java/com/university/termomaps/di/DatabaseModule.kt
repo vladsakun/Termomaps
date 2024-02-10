@@ -3,7 +3,8 @@ package com.university.termomaps.di
 import android.content.Context
 import androidx.room.Room
 import com.university.termomaps.database.AppDatabase
-import com.university.termomaps.database.TermoMarkerDao
+import com.university.termomaps.database.dao.TermoMapDao
+import com.university.termomaps.database.dao.TermoMarkerDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +27,8 @@ object DatabaseModule {
   }
 
   @Provides
-  fun provideTermoMarketDao(database: AppDatabase): TermoMarkerDao {
-    return database.termoMarkerDao()
-  }
+  fun provideTermoMarketDao(database: AppDatabase): TermoMarkerDao = database.termoMarkerDao()
+
+  @Provides
+  fun provideTermoMapDao(database: AppDatabase): TermoMapDao = database.termoMapDao()
 }

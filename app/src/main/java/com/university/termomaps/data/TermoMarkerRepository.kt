@@ -1,7 +1,7 @@
 package com.university.termomaps.data
 
-import com.university.termomaps.database.TermoMarker
-import com.university.termomaps.database.TermoMarkerDao
+import com.university.termomaps.database.dao.TermoMarkerDao
+import com.university.termomaps.database.entity.TermoMarker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -13,13 +13,13 @@ class TermoMarkerRepository @Inject constructor(
 
   val allMarkers: Flow<List<TermoMarker>> = termoMapDao.getAll()
 
-  suspend fun insert(marker: TermoMarker) {
+  suspend fun upsert(marker: TermoMarker) {
     withContext(Dispatchers.IO) {
       termoMapDao.upsert(marker)
     }
   }
 
-  suspend fun insert(markers: List<TermoMarker>) {
+  suspend fun upsert(markers: List<TermoMarker>) {
     withContext(Dispatchers.IO) {
       termoMapDao.upsert(markers)
     }

@@ -1,10 +1,10 @@
-package com.university.termomaps.map
+package com.university.termomaps.features.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,12 +18,21 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.maps.android.clustering.Cluster
+import com.google.maps.android.clustering.ClusterManager
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.university.termomaps.R
+import com.university.termomaps.base.BaseFragment
 import com.university.termomaps.databinding.DialogAddMarkerBinding
 import com.university.termomaps.databinding.FragmentTermoMapBinding
 import com.university.termomaps.ext.collectWhenStarted
 import com.university.termomaps.ext.shareMap
+import com.university.termomaps.features.list.map.model.TermoClusterItem
+import com.university.termomaps.features.map.model.asModel
+import com.university.termomaps.features.map.model.toMarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -31,27 +40,28 @@ import kotlinx.serialization.json.Json
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 @AndroidEntryPoint
-class TermoMapFragment : Fragment(), OnMapReadyCallback {
+class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCallback {
 
-  private lateinit var mMap: GoogleMap
-  private val fusedLocationClient by lazy {
-    LocationServices.getFusedLocationProviderClient(requireActivity())
+  companion object {
+    const val KEY_TERMO_MAP_ID = "key_termo_map_id"
+
+    fun newInstance(termoMapId: Int) =
+      TermoMapFragment().apply {
+        arguments = Bundle().apply {
+          putInt(KEY_TERMO_MAP_ID, termoMapId)
+        }
+      }
   }
+
   private val viewModel: TermoMapViewModel by viewModels()
 
-  private var _binding: FragmentTermoMapBinding? = null
-  private val binding get() = _binding!!
+  private lateinit var mMap: GoogleMap
+  private val fusedLocationClient by lazy { LocationServices.getFusedLocationProviderClient(requireActivity()) }
 
-  override fun onCreateView(
-    inflater: LayoutInflater, container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = FragmentTermoMapBinding.inflate(inflater, container, false)
-    return binding.root
-  }
+  override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?) =
+    FragmentTermoMapBinding.inflate(inflater, container, false)
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
     val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
     mapFragment.getMapAsync(this)
 
@@ -89,13 +99,27 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
     val mapStyleOptions = MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style)
     mMap.setMapStyle(mapStyleOptions)
 
+    val clusterManager = ClusterManager<TermoClusterItem>(requireContext(), mMap)
+    val customClusterRenderer = CustomClusterRenderer(requireContext(), mMap, clusterManager)
+    clusterManager.renderer = customClusterRenderer
+
+    mMap.setOnCameraIdleListener(clusterManager)
+
     viewModel.markers.collectWhenStarted(this) { markers ->
       mMap.clear()
+      clusterManager.clearItems()
+
       markers.forEach { marker ->
-        mMap.addMarker(
-          marker.toMarkerOptions(requireContext())
+        val clusterItem = TermoClusterItem(
+          LatLng(marker.latitude, marker.longitude),
+          marker.name,
+          "Temperature loss: ${marker.temperatureLoss}",
+          marker,
         )
+        clusterManager.addItem(clusterItem)
       }
+
+      clusterManager.cluster()
     }
 
     mMap.setOnMapLongClickListener { latLng ->
@@ -132,11 +156,6 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
     }
   }
 
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
-  }
-
   private fun showAddMarkerDialog(latLng: LatLng) {
     val dialogView = DialogAddMarkerBinding.inflate(LayoutInflater.from(context)).apply {
       numberPicker.minValue = 0
@@ -158,9 +177,30 @@ class TermoMapFragment : Fragment(), OnMapReadyCallback {
   }
 
   private fun shareMarkers() {
-    val markers = viewModel.markers.value.map { TermoMarkerUiModel.to(it) }
+    val markers = viewModel.markers.value.map { it.asModel() }
     val json = Json.encodeToString(markers)
     requireContext().shareMap(json)
   }
 }
 
+class CustomClusterRenderer(
+  private val context: Context,
+  map: GoogleMap,
+  clusterManager: ClusterManager<TermoClusterItem>,
+) : DefaultClusterRenderer<TermoClusterItem>(context, map, clusterManager) {
+
+  override fun onBeforeClusterItemRendered(item: TermoClusterItem, markerOptions: MarkerOptions) {
+    val data = item.termoMarker.toMarkerOptions(context)
+    markerOptions
+      .icon(data.icon)
+      .alpha(data.alpha)
+  }
+
+  override fun onClusterItemUpdated(clusterItem: TermoClusterItem, marker: Marker) {
+    val data = clusterItem.termoMarker.toMarkerOptions(context)
+    marker.setIcon(data.icon)
+    marker.setAnchor(data.anchorU, data.anchorV)
+  }
+
+  override fun shouldRenderAsCluster(cluster: Cluster<TermoClusterItem>): Boolean = cluster.size > 1
+}
