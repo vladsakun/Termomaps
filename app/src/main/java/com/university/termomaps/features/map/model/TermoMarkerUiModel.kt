@@ -13,7 +13,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.university.termomaps.R
-import com.university.termomaps.database.entity.TermoMarker
+import com.university.termomaps.database.entity.marker.TermoMarker
 
 data class TermoMarkerUiModel(
   val id: Long,

@@ -12,5 +12,4 @@ data class TermoMap(
   val id: Int = UUID.randomUUID().hashCode(),
   val name: String,
   val description: String,
-  val author: String,
 )

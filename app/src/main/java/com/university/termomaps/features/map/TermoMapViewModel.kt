@@ -6,30 +6,37 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.university.termomaps.data.TermoMapRepository
 import com.university.termomaps.data.TermoMarkerRepository
-import com.university.termomaps.database.entity.TermoMarker
+import com.university.termomaps.database.entity.TermoMapWithMarkers
+import com.university.termomaps.database.entity.marker.TermoMarker
+import com.university.termomaps.ext.stateInWhileSubscribed
 import com.university.termomaps.ext.stateInWhileSubscribedList
 import com.university.termomaps.features.map.model.TermoMarkerUiModel
 import com.university.termomaps.features.map.model.asUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TermoMapViewModel @Inject constructor(
-  private val termoMapRepository: TermoMapRepository,
+  termoMapRepository: TermoMapRepository,
   private val savedStateHandle: SavedStateHandle,
   private val termoMarkerRepository: TermoMarkerRepository,
 ) : ViewModel() {
 
   private val termoMapId by lazy { getMapId() }
 
+  val termoMap: StateFlow<TermoMapWithMarkers?> =
+    termoMapRepository
+      .getTermoMapWithMarkers(termoMapId)
+      .stateInWhileSubscribed(viewModelScope, null)
+
   val markers: StateFlow<List<TermoMarkerUiModel>> =
-    termoMapRepository.getTermoMapWithMarkers(termoMapId)
-      .map { map ->
-        map.markers.map { it.asUiModel() }
-      }
+    termoMap
+      .filterNotNull()
+      .map { map -> map.markers.map { it.asUiModel() } }
       .stateInWhileSubscribedList(viewModelScope)
 
   fun addMarker(name: String, latLng: LatLng, temperatureLoss: Int) {
@@ -45,6 +52,9 @@ class TermoMapViewModel @Inject constructor(
       termoMarkerRepository.upsert(termoMarket)
     }
   }
+
+  fun getMarker(markerPosition: LatLng): TermoMarkerUiModel? =
+    markers.value.firstOrNull { it.latitude == markerPosition.latitude && it.longitude == markerPosition.longitude }
 
   private fun getMapId(): Int {
     return checkNotNull(savedStateHandle.get<Int>(TermoMapFragment.KEY_TERMO_MAP_ID))

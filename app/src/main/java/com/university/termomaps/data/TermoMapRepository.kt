@@ -13,28 +13,37 @@ class TermoMapRepository @Inject constructor(
   private val termoMapDao: TermoMapDao,
 ) {
 
-  val termoMapsWithMarkers: Flow<List<TermoMapWithMarkers>> = termoMapDao.getTermoMapsWithMarkers()
+  val termoMapsWithMarkers: Flow<List<TermoMapWithMarkers>> =
+    termoMapDao.getTermoMapsWithMarkers()
 
   fun getTermoMapWithMarkers(id: Int): Flow<TermoMapWithMarkers> =
     termoMapDao.getTermoMapWithMarkers(id)
 
-  suspend fun createMap(name: String, description: String, author: String): Int {
-    return withContext(Dispatchers.IO) {
+  suspend fun createMap(name: String, description: String): Int =
+    withContext(Dispatchers.IO) {
       val id = UUID.randomUUID().hashCode()
       termoMapDao.upsert(
         TermoMap(
           name = name,
           description = description,
-          author = author,
           id = id,
         )
       )
 
       id
     }
-  }
+
+  suspend fun upsert(termoMap: TermoMap) =
+    withContext(Dispatchers.IO) {
+      termoMapDao.upsert(termoMap)
+    }
 
   suspend fun deleteAll() {
     termoMapDao.deleteAll()
   }
+
+  suspend fun deleteMap(mapId: Int) =
+    withContext(Dispatchers.IO) {
+      termoMapDao.deleteMap(mapId)
+    }
 }

@@ -5,6 +5,7 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
+  android:background="?attr/selectableItemBackground"
   android:padding="16dp"
   >
 
@@ -17,6 +18,21 @@
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent"
     tools:src="@tools:sample/avatars"
+    />
+
+  <TextView
+    android:id="@+id/tvMapAvatarCount"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:ellipsize="end"
+    android:gravity="center"
+    android:maxLines="1"
+    android:textColor="?attr/colorOnPrimary"
+    app:layout_constraintBottom_toBottomOf="@+id/ivMapAvatar"
+    app:layout_constraintEnd_toEndOf="@+id/ivMapAvatar"
+    app:layout_constraintStart_toStartOf="@+id/ivMapAvatar"
+    app:layout_constraintTop_toTopOf="@+id/ivMapAvatar"
+    tools:text="99+"
     />
 
   <TextView
@@ -49,12 +65,13 @@
     android:id="@+id/ivShare"
     android:layout_width="48dp"
     android:layout_height="48dp"
-    android:background="@null"
+    android:background="?attr/selectableItemBackgroundBorderless"
     android:importantForAccessibility="no"
     android:src="@drawable/ic_share"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintTop_toTopOf="parent"
+    app:tint="?attr/colorOnSurface"
     />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

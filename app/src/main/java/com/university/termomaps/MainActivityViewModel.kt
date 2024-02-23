@@ -2,8 +2,8 @@ package com.university.termomaps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.university.termomaps.data.TermoMarkerRepository
-import com.university.termomaps.database.entity.TermoMarker
+import com.university.termomaps.data.UpsertTermoMapWithMarkersUseCase
+import com.university.termomaps.database.entity.TermoMapWithMarkers
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -11,13 +11,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-  private val termoMarkerRepository: TermoMarkerRepository,
+  private val upsertTermoMapWithMarkersUseCase: UpsertTermoMapWithMarkersUseCase,
 ) : ViewModel() {
 
-  fun importMarkers(json: String) {
+  fun importMap(json: String) {
     viewModelScope.launch {
-      val termoMarkers: List<TermoMarker> = Json.decodeFromString(json)
-      termoMarkerRepository.upsert(termoMarkers)
+      val termoMarkers: TermoMapWithMarkers = Json.decodeFromString(json)
+      upsertTermoMapWithMarkersUseCase(termoMarkers)
     }
   }
 }

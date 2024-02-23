@@ -20,4 +20,7 @@ abstract class TermoMapDao : BaseDao<TermoMap>() {
 
   @Query("SELECT * FROM termo_map WHERE id = :id")
   abstract fun getTermoMapWithMarkers(id: Int): Flow<TermoMapWithMarkers>
+
+  @Query("DELETE FROM termo_map WHERE id = :id")
+  abstract suspend fun deleteMap(id: Int)
 }

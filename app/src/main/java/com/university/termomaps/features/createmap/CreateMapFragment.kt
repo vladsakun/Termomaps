@@ -5,13 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import com.university.termomaps.R
 import com.university.termomaps.base.BaseFragment
 import com.university.termomaps.databinding.FragmentCreateMapBinding
 import com.university.termomaps.ext.collectWhenStarted
+import com.university.termomaps.ext.showKeyboard
 import com.university.termomaps.features.map.TermoMapFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CreateMapFragment : BaseFragment<FragmentCreateMapBinding>() {
+
+  companion object {
+    fun newInstance() = CreateMapFragment()
+  }
 
   private val viewModel: CreateMapViewModel by viewModels()
 
@@ -20,17 +26,13 @@ class CreateMapFragment : BaseFragment<FragmentCreateMapBinding>() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     viewModel.navigateEvent.collectWhenStarted(this) { mapId ->
-      requireActivity()
-        .supportFragmentManager
-        .beginTransaction()
-        .replace(R.id.fragment_container, TermoMapFragment.newInstance(mapId))
-        .commit()
+      requireActivity().supportFragmentManager.popBackStack()
+
+      replaceWithBackStack(TermoMapFragment.newInstance(mapId))
     }
 
     with(binding) {
-      tbCreateMap.setNavigationOnClickListener {
-        requireActivity().supportFragmentManager.popBackStack()
-      }
+      toolbar.setNavigationOnClickListener { back() }
 
       btnCreateMap.setOnClickListener {
         viewModel.createMap(
@@ -38,6 +40,8 @@ class CreateMapFragment : BaseFragment<FragmentCreateMapBinding>() {
           tietMapDescription.text.toString()
         )
       }
+
+      tietMapName.showKeyboard()
     }
   }
 }

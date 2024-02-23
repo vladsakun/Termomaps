@@ -21,7 +21,7 @@ class CreateMapViewModel @Inject constructor(
   // Todo remove hardcoded author
   fun createMap(name: String, description: String, author: String = "KyivBud") {
     viewModelScope.launch {
-      val newMapId = termoMapRepository.createMap(name, description, author)
+      val newMapId = termoMapRepository.createMap(name, description)
       navigateChannel.trySend(newMapId)
     }
   }
