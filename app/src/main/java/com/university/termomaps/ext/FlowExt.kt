@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 
 fun <T> Flow<T>.collectWhenStarted(fragment: Fragment, action: suspend (T) -> Unit) {
-  flowWithLifecycle(fragment.lifecycle, Lifecycle.State.STARTED)
+  flowWithLifecycle(fragment.viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
     .onEach(action)
     .launchIn(fragment.lifecycleScope)
 }

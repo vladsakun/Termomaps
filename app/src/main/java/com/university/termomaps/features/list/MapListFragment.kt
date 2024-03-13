@@ -9,10 +9,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.university.termomaps.R
 import com.university.termomaps.base.BaseFragment
-import com.university.termomaps.common.BottomMarginItemDecoration
 import com.university.termomaps.databinding.FragmentMapListBinding
 import com.university.termomaps.ext.collectWhenStarted
-import com.university.termomaps.ext.px
 import com.university.termomaps.ext.shareMap
 import com.university.termomaps.features.createmap.CreateMapFragment
 import com.university.termomaps.features.list.adapter.MapListAdapter
@@ -25,7 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MapListFragment : BaseFragment<FragmentMapListBinding>(), MapListAdapter.OnMapClickListener {
 
   companion object {
-    private val BOTTOM_PADDING_PX = 88.px
+    private const val TAG = "MapListFragment"
 
     fun newInstance() = MapListFragment()
   }
@@ -72,7 +70,6 @@ class MapListFragment : BaseFragment<FragmentMapListBinding>(), MapListAdapter.O
     with(binding.rvMapList) {
       adapter = mapListAdapter
       layoutManager = LinearLayoutManager(requireContext())
-      addItemDecoration(BottomMarginItemDecoration(BOTTOM_PADDING_PX))
     }
 
     viewModel.termoMapsWithMarkers.collectWhenStarted(this) { maps ->
