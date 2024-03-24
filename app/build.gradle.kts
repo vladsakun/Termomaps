@@ -47,19 +47,21 @@ android {
 
 dependencies {
 
+  // Залежність для роботи з Google Maps
   implementation(libs.google.maps)
-  implementation(libs.androidx.core.ktx)
-  implementation(libs.androidx.appcompat)
-  implementation(libs.material)
-  implementation(libs.androidx.activity)
-  implementation(libs.androidx.constraintlayout)
-  implementation(libs.play.services.maps)
+  // Залежність для роботи з ORM Room
   implementation(libs.room.runtime)
   kapt(libs.room.compiler)
   implementation(libs.room.ktx)
   implementation(libs.hilt.android)
   kapt(libs.hilt.android.compiler)
   kapt(libs.hilt.compiler)
+  implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.material)
+  implementation(libs.androidx.activity)
+  implementation(libs.androidx.constraintlayout)
+  implementation(libs.play.services.maps)
 
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.lifecycle.viewmodel.ktx)
