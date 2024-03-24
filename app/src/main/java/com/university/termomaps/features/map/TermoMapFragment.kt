@@ -85,6 +85,7 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
     FragmentTermoMapBinding.inflate(inflater, container, false)
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    // Ініціалізуємо карту
     val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
     mapFragment.getMapAsync(this)
 
@@ -93,6 +94,7 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
 
     onSuccessLocationPermissionGranted()
 
+    // Слухач події кліку на кнопку "Моя локація"
     binding.btnMyLocation.setOnClickListener {
       if (ContextCompat.checkSelfPermission(
           requireContext(),
@@ -106,30 +108,8 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
     }
   }
 
-  override fun onPause() {
-    super.onPause()
-    fusedLocationClient.removeLocationUpdates(locationCallback)
-  }
-
-  @SuppressLint("MissingPermission")
-  private fun onSuccessLocationPermissionGranted() {
-    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-      if (location != null) {
-        val currentLatLng = LatLng(location.latitude, location.longitude)
-        showMyLocation(currentLatLng)
-      } else {
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-      }
-    }
-  }
-
-  @SuppressLint("MissingPermission")
-  private fun showMyLocation(currentLatLng: LatLng) {
-    mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
-    mMap?.isMyLocationEnabled = true
-  }
-
   override fun onMapReady(googleMap: GoogleMap) {
+    // Коли карта завершила ініціалізацію, додаємо маркери
     mMap = googleMap
 
     val clusterManager = ClusterManager<TermoClusterItem>(requireContext(), mMap).apply {
@@ -137,13 +117,14 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
     }
 
     mMap?.run {
-      // Style
+      // Стиль карти
       uiSettings.isMyLocationButtonEnabled = false
       uiSettings.isCompassEnabled = false
       setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style))
 
-      // Listeners
+      // Слухач події довгого кліку на карті
       setOnMapLongClickListener(::showAddMarkerDialog)
+      // Слухач події завершення переміщення камери
       setOnCameraIdleListener(clusterManager)
 
       clear()
@@ -152,22 +133,60 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
     viewModel.markers.collectWhenStarted(this) { markers ->
       clusterManager.clearItems()
 
+      // Додаємо маркери на карту
       markers.forEach { marker ->
         val clusterItem = TermoClusterItem(
           position = LatLng(marker.latitude, marker.longitude),
           termoMarker = marker,
         )
 
+        // Додаємо маркер в кластер
         clusterManager.addItem(clusterItem)
       }
 
+      // Кластеризуємо маркери
       clusterManager.cluster()
     }
 
+    // Встановлюємо слухач події кліку на маркер
     with(clusterManager.markerCollection) {
+
+      // Встановлюємо адаптер для вікна інформації
       setInfoWindowAdapter(TermoWindowInfoAdapter(LayoutInflater.from(requireContext())))
+
+      // Встановлюємо слухач події кліку на вікно інформації
       setOnInfoWindowClickListener(::handleInfoWindowClick)
     }
+  }
+
+  // Відкриваємо діалог додавання маркера
+  private fun showAddMarkerDialog(latLng: LatLng) {
+    val dialogView = DialogAddMarkerBinding.inflate(LayoutInflater.from(context)).apply {
+      numberPicker.defaultSetup()
+    }
+
+    MaterialAlertDialogBuilder(requireContext())
+      .setView(dialogView.root)
+      .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+        dialog.dismiss()
+      }
+      .setPositiveButton(getString(R.string.confirm)) { dialog, _ ->
+        val name = dialogView.etName.text.toString()
+        val temperature = dialogView.numberPicker.value
+        viewModel.addMarker(name, latLng, temperature)
+        dialog.dismiss()
+      }
+      .create()
+      .show()
+
+    dialogView.etName.showKeyboard()
+  }
+
+  // Поділитися маркерами
+  private fun shareMarkers() {
+    val map = viewModel.termoMap.value ?: return
+    val json = Json.encodeToString(map)
+    requireContext().shareMap(json, mapName = map.termoMap.name)
   }
 
   private fun handleInfoWindowClick(marker: Marker) {
@@ -204,31 +223,26 @@ class TermoMapFragment : BaseFragment<FragmentTermoMapBinding>(), OnMapReadyCall
     }
   }
 
-  private fun showAddMarkerDialog(latLng: LatLng) {
-    val dialogView = DialogAddMarkerBinding.inflate(LayoutInflater.from(context)).apply {
-      numberPicker.defaultSetup()
-    }
-
-    MaterialAlertDialogBuilder(requireContext())
-      .setView(dialogView.root)
-      .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-        dialog.dismiss()
-      }
-      .setPositiveButton(getString(R.string.confirm)) { dialog, _ ->
-        val name = dialogView.etName.text.toString()
-        val temperature = dialogView.numberPicker.value
-        viewModel.addMarker(name, latLng, temperature)
-        dialog.dismiss()
-      }
-      .create()
-      .show()
-
-    dialogView.etName.showKeyboard()
+  override fun onPause() {
+    super.onPause()
+    fusedLocationClient.removeLocationUpdates(locationCallback)
   }
 
-  private fun shareMarkers() {
-    val map = viewModel.termoMap.value ?: return
-    val json = Json.encodeToString(map)
-    requireContext().shareMap(json, mapName = map.termoMap.name)
+  @SuppressLint("MissingPermission")
+  private fun onSuccessLocationPermissionGranted() {
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+      if (location != null) {
+        val currentLatLng = LatLng(location.latitude, location.longitude)
+        showMyLocation(currentLatLng)
+      } else {
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+      }
+    }
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun showMyLocation(currentLatLng: LatLng) {
+    mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f))
+    mMap?.isMyLocationEnabled = true
   }
 }

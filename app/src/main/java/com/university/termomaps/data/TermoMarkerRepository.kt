@@ -7,14 +7,28 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * Репозиторій для роботи з маркерами
+ */
 class TermoMarkerRepository @Inject constructor(
   private val termoMapDao: TermoMarkerDao,
 ) {
 
-  val allMarkers: Flow<List<TermoMarker>> = termoMapDao.getAll()
-
+  /**
+   * Отримати маркер по id
+   *
+   * @param id - ідентифікатор маркера
+   * @return
+   */
   fun getMarkerById(id: Long): Flow<TermoMarker> = termoMapDao.getById(id)
 
+  /**
+   * Оновити деталі маркера
+   *
+   * @param id - ідентифікатор маркера
+   * @param name - назва маркера
+   * @param temperatureLoss - втрати температури
+   */
   suspend fun updateMarkerDetails(id: Long, name: String, temperatureLoss: Int) =
     withContext(Dispatchers.IO) {
       termoMapDao.updateMarkerDetails(
@@ -24,33 +38,33 @@ class TermoMarkerRepository @Inject constructor(
       )
     }
 
+  /**
+   * Оновити маркер
+   *
+   * @param marker - маркер
+   */
   suspend fun upsert(marker: TermoMarker) =
     withContext(Dispatchers.IO) {
       termoMapDao.upsert(marker)
     }
 
+  /**
+   * Оновити список маркерів
+   *
+   * @param markers - список маркерів
+   */
   suspend fun upsert(markers: List<TermoMarker>) =
     withContext(Dispatchers.IO) {
       termoMapDao.upsert(markers)
     }
 
-  suspend fun delete(marker: TermoMarker) =
-    withContext(Dispatchers.IO) {
-      termoMapDao.delete(marker)
-    }
-
+  /**
+   * Видалити маркер по id
+   *
+   * @param markerId - ідентифікатор маркера
+   */
   suspend fun delete(markerId: Long) =
     withContext(Dispatchers.IO) {
       termoMapDao.delete(markerId)
-    }
-
-  suspend fun deleteAll(markers: List<TermoMarker>) =
-    withContext(Dispatchers.IO) {
-      termoMapDao.deleteAll(markers)
-    }
-
-  suspend fun deleteAll() =
-    withContext(Dispatchers.IO) {
-      termoMapDao.deleteAll()
     }
 }

@@ -12,9 +12,6 @@ abstract class TermoMapDao : BaseDao<TermoMap>() {
   @Query("SELECT * FROM termo_map")
   abstract override fun getAll(): Flow<List<TermoMap>>
 
-  @Query("DELETE FROM termo_map")
-  abstract override suspend fun deleteAll()
-
   @Query("SELECT * FROM termo_map")
   abstract fun getTermoMapsWithMarkers(): Flow<List<TermoMapWithMarkers>>
 

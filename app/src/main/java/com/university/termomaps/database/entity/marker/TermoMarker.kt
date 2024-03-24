@@ -6,7 +6,20 @@ import androidx.room.PrimaryKey
 import com.university.termomaps.database.entity.TermoMap
 import kotlinx.serialization.Serializable
 
+/**
+ * Об'єкт маркера на карті
+ *
+ * @property id - унікальний ідентифікатор
+ * @property name - назва маркера
+ * @property latitude - широта
+ * @property longitude - довгота
+ * @property temperatureLoss - втрата температури
+ * @property termoMapId - ідентифікатор термокарти
+ */
 @Serializable
+/**
+ * Таблиця маркерів
+ */
 @Entity(
   tableName = "termo_marker",
   foreignKeys = [

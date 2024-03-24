@@ -38,10 +38,6 @@ class TermoMapRepository @Inject constructor(
       termoMapDao.upsert(termoMap)
     }
 
-  suspend fun deleteAll() {
-    termoMapDao.deleteAll()
-  }
-
   suspend fun deleteMap(mapId: Int) =
     withContext(Dispatchers.IO) {
       termoMapDao.deleteMap(mapId)

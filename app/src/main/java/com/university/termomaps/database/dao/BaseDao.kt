@@ -16,9 +16,4 @@ abstract class BaseDao<T> {
 
   @Delete
   abstract suspend fun delete(entity: T)
-
-  @Delete
-  abstract suspend fun deleteAll(entities: List<T>)
-
-  abstract suspend fun deleteAll()
 }
